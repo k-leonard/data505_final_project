@@ -1,0 +1,63 @@
+---
+title: "final_presentation_model"
+output: html_document
+date: "2025-04-15"
+---
+```{r}
+library(tidyverse)
+library(caret)
+```
+
+```{r}
+fast <- readRDS(gzcon(url("https://github.com/cd-public/D505/raw/refs/heads/master/dat/craven_train.rds")))
+```
+
+```{r}
+profit <- fast["Revenue 2019 to present"] - fast["BOM Cost"] * fast["Units Sold"]
+fast["Profit"] = profit
+fast_features <- fast %>%
+  mutate(
+    bel_avg_BOM = `BOM Cost` < mean(`BOM Cost`),
+    high_revenue = `Revenue 2019 to present` > mean(`Revenue 2019 to present`),
+    abv_20_retail = retailPrice > 20.00,
+    log_revenue = log(`Revenue 2019 to present`),
+    interaction_cost_units = `BOM Cost` * `Units Sold`,
+    #avg_revenue_per_unit = `Revenue 2019 to present` / `Units Sold`
+    abv_10_iphone = gsub("%$","",fast$src_iphone),
+    abv_10_iphone = as.numeric(abv_10_iphone)>10.00,
+    high_perc_orders = gsub("%$","",fast$`pct_Orders for Stock`),
+    high_perc_orders = as.numeric(high_perc_orders)
+    
+  ) %>%
+  select(Profit, bel_avg_BOM, high_revenue, abv_20_retail, log_revenue, interaction_cost_units, abv_10_iphone)
+
+fast_features_clean<-na.omit(fast_features)
+for (i in 1:ncol(fast_features_clean)) {
+  fast_features_clean[[i]] <- ifelse(is.infinite(fast_features_clean[[i]]), 0, fast_features_clean[[i]])
+}
+```
+
+```{r}
+engineer<-function(dataframe){
+  dataframe
+}
+```
+
+```{}
+profit <- fast["Revenue 2019 to present"] - fast["BOM Cost"] * fast["Units Sold"]
+fast <- fast %>% engineer()
+fast <- fast |> select(1:10) # Max 10 features
+fast["Profit"] = profit
+```
+
+```{r}
+set.seed(92)
+train(Profit ~ .,
+      data = fast_features_clean, 
+      method = "lm",
+      trControl = trainControl(method = "cv", number = 5))$results$RMSE
+```
+1950.489
+1422.528
+1091.414 seed: 92 (bel_avg_BOM, high_revenue, abv_20_retail, log_revenue, interaction_cost_units)
+1090.064
