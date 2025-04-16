@@ -1,0 +1,39 @@
+---
+title: "Final Project"
+authors: "Tatum Good, Jace Higa, Kendall Leonard"
+format: 
+  revealjs:
+      embed-resources: true
+editor: visual
+
+---
+
+## Goal
+
+
+## Data
+
+Craven Train
+percent_platypus?
+
+
+## Features Engineering
+
+which feature we chose and which ones we made
+
+## Code
+
+When you click the **Render** button a presentation will be generated that includes both content and the output of embedded code. You can embed code like this:
+
+```{r}
+1 + 1
+```
+
+## Results
+
+When you click the **Render** button a document will be generated that includes:
+
+-   Content authored with markdown
+-   Output from executable code
+
+## In Conclusion and Future Work
