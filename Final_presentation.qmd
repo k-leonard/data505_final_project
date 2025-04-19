@@ -44,17 +44,25 @@ editor: visual
 
 ## A detailed look: bel_94_perc_BOM
 - Stands for 'Below the 94th Percentile BOM (Bill of Materials)'
-- Bill of Materials:
-  - explanation here
+- Bill of Materials: A price that consists of all materials needed to assemble a product.
+  - The less the materials cost, the more profit is possible.
 - Why the 94th percentile?
+  - Tested many percentiles but the 94th ended up lowering our RMSE the most.
 
 ## A detailed look: high_revenue_products
+- Used the 94th percentile as well.
+  - Figured that the more potential revenue you make off of a product the more profit is available.
+  - Think selling a house vs. selling hotdogs
 
 ## A detailed look: log_revenue 
 
 ## A detailed look: interaction_cost_units 
 
 ## A detailed look: high_volume 
+- Used the 99th percentile as well.
+  - Think back to the selling a house vs. selling hotdogs analogy
+  - If you sell ten thousand hotdogs there is more room for profit which is where this idea came from
+
 ## A detailed look: direct 
 ## A detailed look: form
 ## A detailed look: finish 
