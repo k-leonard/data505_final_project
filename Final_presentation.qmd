@@ -4,25 +4,61 @@ authors: "Tatum Good, Jace Higa, Kendall Leonard"
 format: 
   revealjs:
       embed-resources: true
+      mainfont: Century Schoolbook
+      slide-number: true
 editor: visual
 
 ---
 
-## Features We Used
+## What's the point of it all
 
-Quarto enables you to weave together content and executable code into a finished presentation. To learn more about Quarto presentations see <https://quarto.org/docs/presentations/>.
+- Same as everyone else
+    - get the smallest RMSE
 
-## 
 
-When you click the **Render** button a document will be generated that includes:
 
--   Content authored with markdown
--   Output from executable code
+- But what does that even mean in this context?
+  - Answer: have a model who is off by the lowest amount when predicting profit
 
-## Code
 
-When you click the **Render** button a presentation will be generated that includes both content and the output of embedded code. You can embed code like this:
+## Scrub-a-dub-dub (AKA Cleaning the Data)
 
-```{r}
-1 + 1
-```
+- A lot of percentages in this data
+  - meaning that a lot of numeric data was being seen as textual, making any meaningful feature building next to impossible
+  
+- So we chopped off the percentages!
+  - Yay! Workable data!
+
+## Features We Used {.smaller}
+
+   - bel_avg_BOM
+   - high_revenue 
+   - log_revenue 
+   - interaction_cost_units 
+   - high_volume 
+   - src_www 
+   - direct 
+   - form 
+   - finish 
+   - year_min 
+
+## A detailed look: bel_94_perc_BOM
+- Stands for 'Below the 94th Percentile BOM (Bill of Materials)'
+- Bill of Materials:
+  - explanation here
+- Why the 94th percentile?
+
+## A detailed look: high_revenue_products
+
+## A detailed look: log_revenue 
+
+## A detailed look: interaction_cost_units 
+
+## A detailed look: high_volume 
+## A detailed look: direct 
+## A detailed look: form
+## A detailed look: finish 
+## A detailed look: year_min 
+## A detailed look: Design of Model
+## A detailed look: RMSE Reveal
+## Thank you!
