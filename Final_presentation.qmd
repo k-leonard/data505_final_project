@@ -10,6 +10,46 @@ editor: visual
 
 ---
 
+
+```{r echo=FALSE}
+library(tidyverse)
+library(patchwork)  # Add this to enable patchwork
+
+fast <- readRDS(gzcon(url("https://github.com/cd-public/D505/raw/refs/heads/master/dat/craven_train.rds")))
+percent_cols <- sapply(fast, function(col) any(grepl("%", col)))
+profit <- fast["Revenue 2019 to present"] - fast["BOM Cost"] * fast["Units Sold"]
+fast["Profit"] = profit
+
+percent_colnames <- names(fast)[percent_cols]
+
+fast[ , percent_colnames] <- lapply(fast[ , percent_colnames], function(x) {
+  as.numeric(gsub("%", "", x))
+})
+
+fast <- fast[ , !sapply(fast, function(x) is.factor(x) && length(na.omit(unique(x))) < 2)]
+
+fast_features <- fast %>%
+  mutate(
+    bel_avg_BOM = `BOM Cost` < quantile(`BOM Cost`, 0.94),
+    high_revenue = `Revenue 2019 to present` > quantile(`Revenue 2019 to present`, 0.94),
+    log_revenue = log(`Revenue 2019 to present`),
+    interaction_cost_units = `BOM Cost` * `Units Sold`,
+    high_volume = `Units Sold` > quantile(`Units Sold`, 0.99),
+    src_www = src_www < 60,
+    direct = `pct_Direct Sales` > 90,
+    form = ifelse(`Main Component MFG Process` == "Form", 1, 0),
+    finish = ifelse(`Main Component Material` == "Electronics", 1, 0),
+    year_min = June > 3
+  ) %>%
+  select(Profit, bel_avg_BOM, high_revenue, log_revenue, interaction_cost_units, high_volume, src_www, src_external, direct, form, finish, year_min)
+
+fast_features_clean <- na.omit(fast_features)
+for (i in 1:ncol(fast_features_clean)) {
+  fast_features_clean[[i]] <- ifelse(is.infinite(fast_features_clean[[i]]), 0, fast_features_clean[[i]])
+}
+
+```
+
 ## What's the point of it all
 
 - Same as everyone else
@@ -54,7 +94,35 @@ editor: visual
   - Figured that the more potential revenue you make off of a product the more profit is available.
   - Think selling a house vs. selling hotdogs
 
-## A detailed look: log_revenue 
+## A detailed look: log_revenue {.smaller}
+- Revenue often has a skewed distribution, where some products generate much higher sales than others. By applying a logarithmic transformation, we make the distribution more symmetric and reduce the impact of extreme values, helping the model generalize better.
+
+```{r echo=FALSE}
+# Combine both ggplots side by side using patchwork
+p1 <- ggplot(fast, aes(`Revenue 2019 to present`)) +
+  geom_histogram()+labs(
+    title = "Unmodified Revenue Distribution",
+    subtitle = "2019",
+    caption = "CravenSpeed",
+    x = "Revenue"
+    
+  )
+
+p2 <- ggplot(fast_features_clean, aes(log_revenue)) +
+  geom_histogram()+
+  labs(
+    title = "Log of Revenue Distribution",
+    subtitle = "2019",
+    caption = "CravenSpeed",
+    x = "Log of Revenue"
+    
+  )
+
+p1 + p2  # This combines both plots side by side
+
+```
+
+
 
 ## A detailed look: interaction_cost_units 
 
