@@ -125,16 +125,75 @@ p1 + p2  # This combines both plots side by side
 
 
 ## A detailed look: interaction_cost_units 
+- This feature combines BOM Cost and Units Sold, essentially capturing the total cost of goods sold (COGS).
+- Why it helps:
+  - It reflects the scale of production and the cost burden for each product.
+  - A product with high cost and high volume could eat into profits quickly.
+  - Helps the model better understand how costs affect profit when scaled.
+
+```{r}
+ggplot(fast_features_clean, aes(x = interaction_cost_units, y = Profit)) +
+  geom_point(alpha = 0.3) +
+  geom_smooth(method = "lm", se = FALSE, color = "red") +
+  labs(
+    title = "Profit vs. Interaction of Cost and Units Sold",
+    x = "BOM Cost × Units Sold",
+    y = "Profit"
+  ) +
+  scale_x_continuous(labels = scales::comma)
+
+```
 
 ## A detailed look: high_volume 
 - Used the 99th percentile as well.
   - Think back to the selling a house vs. selling hotdogs analogy
   - If you sell ten thousand hotdogs there is more room for profit which is where this idea came from
+```{r}
+ggplot(fast_features_clean, aes(x = as.factor(high_volume), y = Profit)) +
+  geom_boxplot(fill = "steelblue", alpha = 0.7) +
+  labs(
+    title = "Profit Distribution: High Volume vs. Others",
+    x = "High Volume (1 = Yes)",
+    y = "Profit"
+  )
+```
+
 
 ## A detailed look: direct 
+- Indicates if a product had over 90% of its sales via Direct Sales.
+- Why we chose it:
+  - Selling direct often means higher profit margins (fewer middlemen).
+  - This could significantly influence profit and help the model avoid underpredicting for high-margin products.
+
+
 ## A detailed look: form
+- Binary flag for whether the main manufacturing process was "Form".
+- Why this matters:
+  - The manufacturing method likely affects production cost and complexity.
+  - Certain methods might be more efficient or scalable, thus affecting profit margins.
+
 ## A detailed look: finish 
+- Binary flag for whether the main component material was "Electronics".
+- Why we used it:
+  - Electronics may indicate high-value or high-margin products, or more expensive components.
+  - Including this helps the model distinguish material-based cost structures.
+
+
 ## A detailed look: year_min 
+- Flag for whether the product's June column was greater than 3 (likely a proxy for year of introduction or recency).
+- Why we kept it:
+  - Newer products might be in the early stages of the product life cycle, where profits vary widely.
+  - Including this helps the model adjust for maturity or freshness of products in predicting profits.
+
 ## A detailed look: Design of Model
+- Created Profit column as Revenue - (BOM Cost × Units Sold).
+- Converted percentage strings to numeric, removed low-variance columns, and handled missing/infinite values.
+- Feature Engineering:
+  - bel_avg_BOM, high_revenue: percentile-based flags
+  - log_revenue: to reduce skew
+  - interaction_cost_units: captures cost × volume effect
+  - Binary flags for direct, form, finish, year_min, etc.
+- Final cleaned dataset fast_features_clean was ready for modeling.
+
 ## A detailed look: RMSE Reveal
 ## Thank you!
