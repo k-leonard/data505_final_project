@@ -39,9 +39,9 @@ fast_features <- fast %>%
     direct = `pct_Direct Sales` > 90,
     form = ifelse(`Main Component MFG Process` == "Form", 1, 0),
     finish = ifelse(`Main Component Material` == "Electronics", 1, 0),
-    year_min = June > 3
+    june = June > 3
   ) %>%
-  select(Profit, bel_avg_BOM, high_revenue, log_revenue, interaction_cost_units, high_volume, src_www, src_external, direct, form, finish, year_min)
+  select(Profit, bel_avg_BOM, high_revenue, log_revenue, interaction_cost_units, high_volume, src_www, src_external, direct, form, finish, june)
 
 fast_features_clean <- na.omit(fast_features)
 for (i in 1:ncol(fast_features_clean)) {
@@ -179,7 +179,7 @@ ggplot(fast_features_clean, aes(x = as.factor(high_volume), y = Profit)) +
   - Including this helps the model distinguish material-based cost structures.
 
 
-## A detailed look: year_min 
+## A detailed look: june 
 - Flag for whether the product's June column was greater than 3 (likely a proxy for year of introduction or recency).
 - Why we kept it:
   - Newer products might be in the early stages of the product life cycle, where profits vary widely.
