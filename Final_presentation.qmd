@@ -10,8 +10,10 @@ editor: visual
 ---
 
 ```{r echo=FALSE}
+set.seed(1)
 library(tidyverse)
 library(patchwork)  # Add this to enable patchwork
+library(caret)
 
 fast <- readRDS(gzcon(url("https://github.com/cd-public/D505/raw/refs/heads/master/dat/craven_train.rds")))
 percent_cols <- sapply(fast, function(col) any(grepl("%", col)))
@@ -85,7 +87,7 @@ for (i in 1:ncol(fast_features_clean_w_bom)) {
 -   src_www
 -   direct
 -   form
--   finish
+-   main_component
 -   june
 
 ## A detailed look: bel_94_perc_BOM {.smaller .absolute}
@@ -273,12 +275,27 @@ ggplot(fast_features_clean, aes(x = june, y = Profit, fill = june)) +
     -   Binary flags for direct, form, finish, june, etc.
 -   Final cleaned dataset fast_features_clean was ready for modeling.
 
-## A detailed look: RMSE Reveal
+## The Big Reveal: RMSE {.center .smaller .incremental}
+
+:::{.r-fit-text }
 
 ```{r echo=FALSE}
-engineer<-function(dataframe){
-  dataframe
-}
+train(Profit ~ .,
+      data = fast_features_clean, 
+      method = "lm",
+      trControl = trainControl(method = "cv", number = 5))$results$RMSE
 ```
+:::
+- In this context, an RMSE (Root Mean Squared Error) value of 887.6885 means that, on average, your model's predicted profit is off by about $887.69 compared to the actual profit.
 
-## Thank you!
+- Since we're predicting profit in dollars, RMSE is measured in the same units. So:
+  - If our model predicts a product will make $5,000 in profit, it’s typically off by around $887.69 in either direction
+  
+
+
+
+## 
+:::{.r-fit-text }
+Thank you!
+:::
+
