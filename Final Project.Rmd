@@ -43,7 +43,7 @@ fast <- fast %>%
       interaction_cost_units = `BOM Cost` * `Units Sold`,  
       high_volume = `Units Sold` > quantile(`Units Sold`, 0.99), 
       src_www = `src_www` < 60,  
-      direct = `pct_Direct Sales` > 90,   sales (greater than 90%)
+      direct = `pct_Direct Sales` > 90,  
       form = ifelse(`Main Component MFG Process` == "Form", 1, 0),
       main_component = ifelse(`Main Component Material` == "Electronics", 1, 0),  
       june = June > 3  #
