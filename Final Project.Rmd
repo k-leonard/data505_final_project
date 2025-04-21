@@ -12,95 +12,77 @@ library(caret)
 fast <- readRDS(gzcon(url("https://github.com/cd-public/D505/raw/refs/heads/master/dat/craven_train.rds")))
 ```
 
-
-
 ```{r}
-profit <- fast["Revenue 2019 to present"] - fast["BOM Cost"] * fast["Units Sold"]
-fast["Profit"] = profit
-fast_features <- fast %>%
-  mutate(
-    bel_avg_BOM = `BOM Cost` < quantile(`BOM Cost`, 0.94),
-    high_revenue = `Revenue 2019 to present` > quantile(`Revenue 2019 to present`, 0.94),
-    log_revenue = log(`Revenue 2019 to present`),
-    interaction_cost_units = `BOM Cost` * `Units Sold`,
-    high_volume = `Units Sold` > quantile(`Units Sold`, 0.99),
-    src_www = src_www < 60,
-    direct = `pct_Direct Sales` > 90,
-    form = ifelse(`Main Component MFG Process` == "Form", 1, 0),
-    finish = ifelse(`Main Component Material` == "Electronics", 1, 0),
-    year_min = June > 3
-    ) %>%
-  select(Profit, bel_avg_BOM, high_revenue, log_revenue, interaction_cost_units, high_volume, src_www, src_external, direct, form, finish, year_min)
-
-fast_features_clean<-na.omit(fast_features)
-for (i in 1:ncol(fast_features_clean)) {
-  fast_features_clean[[i]] <- ifelse(is.infinite(fast_features_clean[[i]]), 0, fast_features_clean[[i]])
-}
-
-```
-
-
-
-```{r}
-percent_cols <- sapply(fast, function(col) any(grepl("%", col)))
-
-
-percent_colnames <- names(fast)[percent_cols]
-
-
-fast[ , percent_colnames] <- lapply(fast[ , percent_colnames], function(x) {
-  as.numeric(gsub("%", "", x))
-})
-
-
-fast <- fast[ , !sapply(fast, function(x) is.factor(x) && length(na.omit(unique(x))) < 2)]
-
-
+engineer <- function(fast) {
+  
+  library(dplyr)
 
 fast <- fast %>%
-  select(where(~ length(unique(na.omit(.))) >= 2)) %>%
-  select(c(-lookupId, -`First Order (from sales data)`, -`Base Product Sku`))
+  mutate(across(everything(), ~ ifelse(is.na(.), 
+                                       if(is.numeric(.)) 0 else "", .)))
 
-
-mod <- lm(Profit ~ ., data = fast)
-
-
-summary(mod)
-```
-
-
-
-```{r}
-coefs <- summary(mod)$coefficients
-coefs <- coefs[order(coefs[, 4]), ] 
-
-coefs
-```
-
-
-
-
-```{r}
-engineer<-function(dataframe){
-  dataframe
+  percent_cols <- sapply(fast, function(col) any(grepl("%", col)))
+  percent_colnames <- names(fast)[percent_cols]
+  
+  fast[ , percent_colnames] <- lapply(fast[ , percent_colnames], function(x) {
+    as.numeric(gsub("%", "", x))
+  })
+  
+  
+  fast <- fast[ , !sapply(fast, function(x) is.factor(x) && length(na.omit(unique(x))) < 2)]
+  
+  fast <- fast %>%
+    select(where(~ length(unique(na.omit(.))) >= 2)) %>%
+    select(c(-lookupId, -`First Order (from sales data)`, -`Base Product Sku`)) 
+  
+  fast_features <- fast %>%
+    mutate(
+      bel_94_perc_BOM = `BOM Cost` < quantile(`BOM Cost`, 0.94),  
+      high_revenue = `Revenue 2019 to present` > quantile(`Revenue 2019 to present`, 0.94),  
+      log_revenue = log(`Revenue 2019 to present`),  
+      interaction_cost_units = `BOM Cost` * `Units Sold`,  
+      high_volume = `Units Sold` > quantile(`Units Sold`, 0.99), 
+      src_www = `src_www` < 60,  
+      direct = `pct_Direct Sales` > 90,   sales (greater than 90%)
+      form = ifelse(`Main Component MFG Process` == "Form", 1, 0),
+      main_component = ifelse(`Main Component Material` == "Electronics", 1, 0),  
+      june = June > 3  #
+    ) %>%
+    select(bel_94_perc_BOM, high_revenue, log_revenue, interaction_cost_units, high_volume, 
+           src_www, src_external, direct, form, main_component, june)
+  
+  # Remove any rows with NA values and replace Inf values with 0
+  fast_features_clean <- fast_features
+  for (i in 1:ncol(fast_features_clean)) {
+    fast_features_clean[[i]] <- ifelse(is.infinite(fast_features_clean[[i]]), 0, fast_features_clean[[i]])
+  }
+  
+  return(fast_features_clean)
 }
+
 ```
 
 ```{}
 profit <- fast["Revenue 2019 to present"] - fast["BOM Cost"] * fast["Units Sold"]
+fast["Profit"] = profit
+fast <- fast %>% engineer()
+fast <- fast |> select(1:10) # Max 10 features
+
+```
+
+
+
+```{r}
+set.seed(8)
+profit <- fast["Revenue 2019 to present"] - fast["BOM Cost"] * fast["Units Sold"]
 fast <- fast %>% engineer()
 fast <- fast |> select(1:10) # Max 10 features
 fast["Profit"] = profit
-```
 
-```{r}
-set.seed(1)
 train(Profit ~ .,
-      data = fast_features_clean, 
+      data = fast, 
       method = "lm",
       trControl = trainControl(method = "cv", number = 5))$results$RMSE
+
 ```
-1950.489
-1422.528
-1091.414 seed: 92 (bel_avg_BOM, high_revenue, abv_20_retail, log_revenue, interaction_cost_units)
-1090.064
+
